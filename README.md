@@ -4,6 +4,8 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 ## Getting Started
 
+<span style="color:red">Open the SETUP.html file in your browser for complete setup details</span>
+
 You will need to create a Firebase Account and then setup Firebase Authentication using Email/Password, Setup Firebase Firestore with these rules:
 
 
