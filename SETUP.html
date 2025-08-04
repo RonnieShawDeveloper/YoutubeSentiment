@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Sentiment Analysis - Setup Guide</title>
+  <style>
+    /* --- General Styling & Resets --- */
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #34495e;
+      --accent-color: #3498db;
+      --background-color: #ecf0f1;
+      --text-color: #333;
+      --light-gray: #bdc3c7;
+      --white: #ffffff;
+      --code-bg: #2d2d2d;
+      --code-text: #f8f8f2;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;500&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      line-height: 1.7;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--white);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      overflow: hidden;
+    }
+
+    /* --- Header & Titles --- */
+    .header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: var(--white);
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      color: var(--primary-color);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--accent-color);
+      font-weight: 700;
+    }
+
+    h3 {
+      font-size: 1.4rem;
+      color: var(--secondary-color);
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+
+    h4 {
+      font-size: 1.1rem;
+      color: var(--primary-color);
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    /* --- Content Styling --- */
+    .content {
+      padding: 2rem;
+    }
+
+    section {
+      margin-bottom: 2.5rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    strong {
+      color: var(--primary-color);
+      font-weight: 500;
+    }
+
+    ul, ol {
+      padding-left: 20px;
+      margin-bottom: 1rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    /* --- Code Blocks --- */
+    pre {
+      background-color: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      overflow-x: auto;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 1.5rem 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    code {
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    /* Inline code */
+    p > code, li > code {
+      background-color: #e8e8e8;
+      color: #c7254e;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    /* --- Responsive Design --- */
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      .content, .header {
+        padding: 1.5rem;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <h1>YouTube Sentiment Analysis</h1>
+    <p>Setup & Deployment Guide</p>
+  </header>
+
+  <main class="content">
+
+    <!-- Project Overview Section -->
+    <section id="overview">
+      <h2>Project Overview</h2>
+      <p>Welcome to the YouTube Sentiment Analysis project! This is an Angular-based web application designed to analyze the sentiment of comments on YouTube videos. It leverages Google's Gemini AI for in-depth analysis and provides a detailed report to content creators.</p>
+
+      <h3>Technology Stack</h3>
+      <p>The application is built with a modern technology stack, ensuring a robust and scalable solution:</p>
+      <ul>
+        <li><strong>Angular (v20.1)</strong>: A powerful framework for building dynamic single-page applications.</li>
+        <li><strong>Firebase</strong>: A comprehensive platform from Google that provides backend services like Authentication, Firestore, Remote Config, and Hosting.</li>
+        <li><strong>PrimeNG & Angular Material</strong>: UI component libraries used to build a rich user interface.</li>
+        <li><strong>Tailwind CSS (v4)</strong>: A utility-first CSS framework for creating custom designs rapidly.</li>
+      </ul>
+
+      <h3>File Structure</h3>
+      <p>Here is a high-level overview of the project's file structure to help you navigate the codebase:</p>
+      <pre><code>.
+├── src/
+│   ├── app/
+│   │   ├── analyze/        # Analysis-in-progress screen
+│   │   ├── auth/           # Auth guard, login, signup
+│   │   ├── dashboard/      # Main dashboard
+│   │   ├── report/         # Analysis report display
+│   │   └── services/       # Firebase, Gemini, YouTube API
+│   ├── environments/
+│   │   ├── environment.prod.ts
+│   │   └── environment.ts
+│   └── ...
+├── angular.json
+├── firebase.json
+├── package.json
+└── tailwind.config.js</code></pre>
+    </section>
+
+    <!-- Firebase Setup Section -->
+    <section id="firebase-setup">
+      <h2>1. Firebase Project Setup</h2>
+      <p>To get the application running, you first need to set up a Firebase project and the necessary API keys.</p>
+
+      <h3>Step 1: Create a Firebase Project</h3>
+      <ol>
+        <li>Go to the <a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a>.</li>
+        <li>Click on "<strong>Add project</strong>" and give your project a name.</li>
+        <li>Follow the on-screen instructions to create the project. This will also create a corresponding project in the Google Cloud Console.</li>
+      </ol>
+
+      <h3>Step 2: Set Up Firebase Authentication</h3>
+      <ol>
+        <li>In the Firebase Console, go to the <strong>Authentication</strong> section.</li>
+        <li>Click "<strong>Get started</strong>".</li>
+        <li>In the <strong>Sign-in method</strong> tab, select and enable <strong>Email/Password</strong>.</li>
+      </ol>
+
+      <h3>Step 3: Set Up Firestore Database</h3>
+      <ol>
+        <li>Go to the <strong>Firestore Database</strong> section and click "<strong>Create database</strong>".</li>
+        <li>Start in <strong>Production mode</strong> and select a location.</li>
+        <li>Go to the <strong>Rules</strong> tab and replace the default rules with the following:</li>
+      </ol>
+      <pre><code>rules_version = '2';
+service cloud.firestore {
+        match /databases/{database}/documents {
+    match /users/{userId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        match /reports/{reportId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    match /{document=**} {
+          allow read, write: if false;
+    }
+  }
+}</code></pre>
+                <ol start="7"><li>Click <strong>Publish</strong> to save the rules.</li></ol>
+
+                <h3>Step 4: Obtain API Keys</h3>
+                <p>This application requires two API keys: one for Google's Gemini AI and one for the YouTube Data API.</p>
+
+                <h4>A. Get Gemini AI API Key</h4>
+                <ol>
+                    <li>Go to <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>.</li>
+                    <li>Sign in with the same Google account used for your Firebase project.</li>
+                    <li>Click on "<strong>Get API key</strong>" in the top left corner.</li>
+                    <li>In the dialog that appears, click "<strong>Create API key in new project</strong>".</li>
+                    <li>A new Google Cloud project will be created for you, and your API key will be displayed. Copy this key and save it somewhere safe.</li>
+                </ol>
+
+                <h4>B. Get YouTube Data API v3 Key</h4>
+                <ol>
+                    <li>Go to the <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>.</li>
+                    <li>At the top of the page, select the Google Cloud project that was created with your Firebase project (it should have the same name).</li>
+                    <li>In the navigation menu (hamburger icon), go to <strong>APIs & Services > Library</strong>.</li>
+                    <li>Search for "<strong>YouTube Data API v3</strong>" and click on it.</li>
+                    <li>Click the <strong>Enable</strong> button.</li>
+                    <li>Once enabled, go to <strong>APIs & Services > Credentials</strong>.</li>
+                    <li>Click "<strong>+ CREATE CREDENTIALS</strong>" at the top and select "<strong>API key</strong>".</li>
+                    <li>A new API key will be created. Copy this key and save it. It is recommended to restrict this key to only be used by the YouTube Data API v3 for security.</li>
+                </ol>
+
+                <h3>Step 5: Set Up Remote Config</h3>
+                <ol>
+                    <li>Go to the <strong>Remote Config</strong> section in the Firebase Console.</li>
+                    <li>Click "<strong>Create configuration</strong>".</li>
+                    <li>Add two parameters using the keys you just obtained:
+                        <ul>
+                            <li><strong>Parameter name</strong>: <code>gemini_2_5_flash_key</code>, <strong>Value</strong>: Your Gemini AI API Key.</li>
+                            <li><strong>Parameter name</strong>: <code>youtube_api_key</code>, <strong>Value</strong>: Your YouTube Data API v3 key.</li>
+                        </ul>
+                    </li>
+                    <li>Click <strong>Publish changes</strong>.</li>
+                </ol>
+
+                <h3>Step 6: Set Up Firebase Hosting</h3>
+                <ol>
+                    <li>Go to the <strong>Hosting</strong> section.</li>
+                    <li>Click "<strong>Get started</strong>" and proceed through the setup wizard. We will configure the details later using the CLI.</li>
+                </ol>
+            </section>
+
+            <!-- Local Environment Setup Section -->
+            <section id="local-setup">
+                <h2>2. Local Environment Setup</h2>
+                <p>Connect your local Angular project to your new Firebase project.</p>
+                <ol>
+                    <li>In the Firebase Console, go to <strong>Project Settings</strong> > <strong>General</strong> tab.</li>
+                    <li>Scroll to "Your apps" and click the <strong>Web icon</strong> (<code>&lt;/&gt;</code>).</li>
+                    <li>Register the app and copy the provided Firebase SDK configuration snippet.</li>
+                    <li>Open <code>src/environments/environment.ts</code> and <code>src/environments/environment.prod.ts</code>.</li>
+                    <li>Paste the Firebase config into the <code>firebase</code> property in both files.</li>
+                </ol>
+                <pre><code>export const environment = {
+  production: false,
+          firebase: {
+            apiKey: "AIza...",
+              authDomain: "your-project-id.firebaseapp.com",
+              // ... rest of your config
+            },
+  // ...
+};</code></pre>
+    </section>
+
+    <!-- Deployment Section -->
+    <section id="deployment">
+      <h2>3. Building and Deploying the Application</h2>
+      <p>With the project configured, you are now ready to build and deploy it.</p>
+
+      <h3>Step 1: Install and Log in to Firebase CLI</h3>
+      <p>If you don't have it, install the Firebase CLI globally. Then log in.</p>
+      <pre><code>npm install -g firebase-tools
+firebase login</code></pre>
+
+      <h3>Step 2: Initialize Firebase in the Project</h3>
+      <p>In the project's root directory, run <code>firebase init</code> and answer the prompts:</p>
+      <ul>
+        <li>Select <strong>Hosting</strong>.</li>
+        <li>Choose to <strong>Use an existing project</strong> and select your project.</li>
+        <li>For the public directory, enter: <code>dist/YouTubeSentiment/browser</code></li>
+        <li>Configure as a single-page app? <strong>Yes</strong>.</li>
+        <li>Set up automatic builds with GitHub? <strong>No</strong>.</li>
+      </ul>
+
+      <h3>Step 3: Build the Application</h3>
+      <p>Create a production-ready build of the application.</p>
+      <pre><code>ng build --configuration production</code></pre>
+
+      <h3>Step 4: Deploy to Firebase Hosting</h3>
+      <p>Deploy the built application to Firebase.</p>
+      <pre><code>firebase deploy</code></pre>
+      <p>Once finished, the CLI will provide the URL to your live application. Congratulations!</p>
+    </section>
+    <section>
+      <h2>4. Set up Payments for Credits</h2>
+      <p>Now that you have the project setup, you will need to add your own method of processing Payments
+        using your choice of services. Paypal will probably be the quickest method to use to setup
+        payments for this project. If you need integration help, please send an email to ronnie&#64;artificialinsightsllc.com
+        or contact me through the Themeforest Support Center. </p>
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>
