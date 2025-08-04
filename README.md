@@ -2,6 +2,44 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.4.
 
+## Getting Started
+
+You will need to create a Firebase Account and then setup Firebase Authentication using Email/Password, Setup Firebase Firestore with these rules:
+
+
+```bash
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to read and write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow users to read and write their own reports
+      match /reports/{reportId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Deny access to all other documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+```
+
+You will also need to setup Firebase Remote Config with the following parameters:
+
+```
+Parameter Name: gemini_2_5_flash_key Value: Your Gemini AI Key (Create using Google AI Studio)
+Parameter Name: youtube_api_key Value: Your API Key from Google Cloud Console
+
+After you create your Firebase project, you can go to Google Cloud Console and activate the Youtube Data API v3 and then create API key credentials - this is where you will get your API Key from
+```
+Once you have Firebase setup, and have setup your Remote Config, open the project in your editor of choice (Webstorm, etc) and edit the environment files. You will need to copy your project SDK settings into the environment files.
+
+
 ## Development server
 
 To start a local development server, run:
