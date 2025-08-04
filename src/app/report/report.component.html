@@ -1,0 +1,810 @@
+<div class="min-h-screen bg-gray-50 flex flex-col">
+  <!-- Header -->
+  <div class="bg-primary-600 text-white py-4">
+    <div class="container mx-auto px-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <button mat-icon-button (click)="navigateToDashboard()">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <h1 class="text-xl font-heading font-bold ml-2">Comment Analysis Report</h1>
+        </div>
+        <div class="flex items-center">
+          <button mat-icon-button matTooltip="Share Report" (click)="shareReport()">
+            <mat-icon>share</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Download Report" (click)="downloadReport()">
+            <mat-icon>download</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 py-8">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-16">
+      <mat-spinner [diameter]="50"></mat-spinner>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="max-w-3xl mx-auto">
+      <mat-card class="error-card p-6 animate-fade-in">
+        <mat-card-content>
+          <div class="flex flex-col items-center text-center">
+            <mat-icon class="text-red-500 text-6xl mb-4">error_outline</mat-icon>
+            <h2 class="text-xl font-heading font-semibold text-gray-800 mb-2">Error Loading Report</h2>
+            <p class="text-gray-600 mb-6">{{ error }}</p>
+            <button mat-raised-button color="primary" (click)="navigateToDashboard()">
+              Return to Dashboard
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Report Content -->
+    <div *ngIf="report && !isLoading && !error" class="report-container animate-fade-in">
+      <!-- Video Info -->
+      <div class="video-info-card mb-6">
+        <mat-card>
+          <mat-card-content>
+            <div class="flex flex-col md:flex-row items-start md:items-center">
+              <div class="video-thumbnail mr-4 mb-4 md:mb-0">
+                <img [src]="'https://img.youtube.com/vi/' + report.videoId + '/mqdefault.jpg'" alt="Video Thumbnail">
+              </div>
+              <div class="flex-grow">
+                <h2 class="text-xl font-heading font-semibold text-gray-800 mb-1">{{ report.videoTitle }}</h2>
+                <p class="text-gray-500 text-sm mb-2">Analysis created on {{ formatDate(report.createdAt) }}</p>
+                <a [href]="report.videoUrl" target="_blank" class="text-primary-600 hover:text-primary-800 flex items-center">
+                  <mat-icon class="text-sm mr-1">open_in_new</mat-icon>
+                  <span>View on YouTube</span>
+                </a>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Report Tabs -->
+      <mat-tab-group animationDuration="300ms" class="report-tabs">
+        <!-- Summary Tab -->
+        <mat-tab label="Summary">
+          <div class="p-4">
+            <mat-card *ngIf="report.reportData?.writtenAnalysis">
+              <mat-card-header>
+                <mat-card-title>Analysis Summary</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="written-analysis-content py-2">
+                  <p class="text-gray-700 whitespace-pre-line">{{ report.reportData.writtenAnalysis }}</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- At-a-Glance Summary Tab -->
+        <mat-tab label="At-a-Glance Summary">
+          <div class="p-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Sentiment Analysis -->
+              <mat-card class="h-full">
+                <mat-card-header>
+                  <mat-card-title>Overall Sentiment</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="chart-container" style="height: 300px;">
+                    <p-chart type="pie" [data]="sentimentChartData" [options]="sentimentChartOptions"></p-chart>
+                  </div>
+                  <div *ngIf="sentimentChartData" class="mt-4 grid grid-cols-3 gap-2 text-center">
+                    <div class="sentiment-stat positive">
+                      <div class="text-2xl font-bold">{{ sentimentChartData.datasets[0].data[0] }}%</div>
+                      <div class="text-sm">Positive</div>
+                    </div>
+                    <div class="sentiment-stat neutral">
+                      <div class="text-2xl font-bold">{{ sentimentChartData.datasets[0].data[1] }}%</div>
+                      <div class="text-sm">Neutral</div>
+                    </div>
+                    <div class="sentiment-stat negative">
+                      <div class="text-2xl font-bold">{{ sentimentChartData.datasets[0].data[2] }}%</div>
+                      <div class="text-sm">Negative</div>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Comments by Time -->
+              <mat-card class="h-full">
+                <mat-card-header>
+                  <mat-card-title>Comments by Time</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="chart-container" style="height: 300px;">
+                    <p-chart type="bar" [data]="commentsTimelineData" [options]="commentsTimelineOptions"></p-chart>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Top Comment Themes -->
+              <mat-card class="h-full">
+                <mat-card-header>
+                  <mat-card-title>Top Comment Themes</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.atAGlanceSummary?.topThemes" class="themes-list">
+                    <div *ngFor="let theme of report.reportData.atAGlanceSummary.topThemes; let i = index" class="theme-item">
+                      <div class="flex items-center">
+                        <div class="theme-rank">{{ i + 1 }}</div>
+                        <div class="theme-content">
+                          <div class="theme-name">{{ theme }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Fallback if no themes are found -->
+                  <div *ngIf="!report.reportData?.atAGlanceSummary?.topThemes" class="text-center text-gray-500 py-4">
+                    No theme data available
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Most Liked Comments -->
+              <mat-card class="h-full">
+                <mat-card-header>
+                  <mat-card-title>Most Liked Comments</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.atAGlanceSummary?.mostLikedComments" class="comments-list">
+                    <div *ngFor="let comment of report.reportData.atAGlanceSummary.mostLikedComments" class="comment-item">
+                      <div class="comment-text">"{{ comment.commentText || comment.text }}"</div>
+                      <div class="comment-meta">
+                        <span class="comment-likes">
+                          <mat-icon class="text-sm">thumb_up</mat-icon>
+                          {{ comment.likeCount }}
+                        </span>
+                        <span class="comment-author">{{ comment.author }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Fallback if no comments are found -->
+                  <div *ngIf="!report.reportData?.atAGlanceSummary?.mostLikedComments" class="text-center text-gray-500 py-4">
+                    No most liked comments available
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Key Themes Tab -->
+        <mat-tab label="Key Theme Deep Dive">
+          <div class="p-6">
+            <!-- Section Introduction -->
+            <div class="theme-intro-section mb-6 p-5 bg-blue-50 rounded-lg border-l-4 border-blue-500 shadow-sm">
+              <h3 class="text-xl font-bold text-blue-800 mb-3">Key Theme Deep Dive</h3>
+              <p class="text-gray-700 mb-4">This section analyzes the most significant themes discussed by your viewers. Each theme represents a major topic or sentiment that appeared consistently across comments.</p>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div class="theme-section-explanation p-3 bg-white rounded-lg shadow-sm border border-blue-100">
+                  <h4 class="text-lg font-semibold text-blue-700 mb-2">Theme Title</h4>
+                  <p class="text-gray-600 text-sm">The main topic or sentiment identified in viewer comments. These represent the key discussion points about your content.</p>
+                </div>
+
+                <div class="theme-section-explanation p-3 bg-white rounded-lg shadow-sm border border-blue-100">
+                  <h4 class="text-lg font-semibold text-blue-700 mb-2">Theme Explanation</h4>
+                  <p class="text-gray-600 text-sm">A detailed analysis of why this theme matters, how viewers responded to it, and what it reveals about your content.</p>
+                </div>
+
+                <div class="theme-section-explanation p-3 bg-white rounded-lg shadow-sm border border-blue-100">
+                  <h4 class="text-lg font-semibold text-blue-700 mb-2">Supporting Comments</h4>
+                  <p class="text-gray-600 text-sm">Direct quotes from viewers that exemplify this theme, providing concrete evidence of how your audience expressed these sentiments.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Themes Accordion -->
+            <p-accordion [multiple]="true" styleClass="themes-accordion">
+              <p-accordion-panel *ngFor="let theme of report.reportData?.keyThemeDeepDive; let i = index">
+                <ng-template pTemplate="header">
+                  <div class="flex items-center">
+                    <div class="theme-number flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-bold mr-3">
+                      {{i+1}}
+                    </div>
+                    <span class="font-medium text-lg">{{ theme.themeTitle }}</span>
+                  </div>
+                </ng-template>
+                <div class="theme-deep-dive p-4">
+                  <div class="theme-explanation-container mb-6 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="text-lg font-semibold text-blue-800 mb-2">Theme Analysis:</h4>
+                    <p class="theme-explanation text-gray-700">{{ theme.explanation }}</p>
+                  </div>
+
+                  <h4 class="text-lg font-semibold text-blue-800 mb-3">Supporting Comments:</h4>
+                  <div class="supporting-comments grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div *ngFor="let quote of theme.supportingComments" class="supporting-quote">
+                      <div class="quote-text">"{{ quote }}"</div>
+                    </div>
+                  </div>
+                </div>
+              </p-accordion-panel>
+              <!-- Fallback if no themes are found -->
+              <div *ngIf="!report.reportData?.keyThemeDeepDive || report.reportData?.keyThemeDeepDive.length === 0" class="text-center text-gray-500 py-4">
+                No theme deep dive data available
+              </div>
+            </p-accordion>
+          </div>
+        </mat-tab>
+
+        <!-- Emotional Analysis Tab -->
+        <mat-tab label="Emotional Analysis">
+          <div class="p-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Emotion Breakdown -->
+              <mat-card class="h-full">
+                <mat-card-header>
+                  <mat-card-title>Emotion Breakdown</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.emotionalAnalysis?.emotionBreakdown?.length" class="emotion-list">
+                    <div *ngFor="let emotion of report.reportData.emotionalAnalysis.emotionBreakdown" class="emotion-item mb-4">
+                      <div class="flex justify-between items-center mb-1">
+                        <span class="emotion-name font-medium">{{ emotion.emotion }}</span>
+                        <span class="emotion-percentage">{{ emotion.percentage }}%</span>
+                      </div>
+                      <div class="emotion-bar-bg h-2 bg-gray-200 rounded-full">
+                        <div class="emotion-bar h-full rounded-full"
+                             [ngStyle]="{'width': emotion.percentage + '%', 'background-color': getEmotionColor(emotion.emotion)}"></div>
+                      </div>
+                      <div class="emotion-examples mt-2" *ngIf="emotion.exampleComments?.length">
+                        <div *ngFor="let comment of emotion.exampleComments.slice(0, 2)" class="text-sm text-gray-600 italic">
+                          "{{ comment }}"
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.emotionalAnalysis?.emotionBreakdown?.length" class="text-center text-gray-500 py-4">
+                    No emotion breakdown data available
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Timestamp Highlights -->
+              <mat-card class="h-full">
+                <mat-card-header>
+                  <mat-card-title>Timestamp Highlights</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.emotionalAnalysis?.timestampHighlights?.length" class="timestamp-list">
+                    <div *ngFor="let highlight of report.reportData.emotionalAnalysis.timestampHighlights" class="timestamp-item mb-3 p-3 border-l-4 border-primary-500 bg-gray-50 rounded">
+                      <div class="timestamp-time font-bold text-primary-700">{{ highlight.timestamp }}</div>
+                      <div class="timestamp-comment my-1">"{{ highlight.comment }}"</div>
+                      <div class="timestamp-reaction text-sm text-gray-600">{{ highlight.reaction }}</div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.emotionalAnalysis?.timestampHighlights?.length" class="text-center text-gray-500 py-4">
+                    No timestamp highlights available
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Constructive Criticism -->
+              <mat-card class="h-full" style="grid-column: span 2;">
+                <mat-card-header>
+                  <mat-card-title>Feedback Analysis</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.emotionalAnalysis?.constructiveCriticism?.length" class="criticism-list">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="constructive-column">
+                        <h3 class="text-lg font-medium mb-3 text-green-700">Constructive Feedback</h3>
+                        <div *ngFor="let item of getConstructiveCriticism()" class="criticism-item mb-2 p-3 bg-green-50 rounded">
+                          <div class="criticism-text">"{{ item.comment }}"</div>
+                          <div class="criticism-actionable mt-1" *ngIf="item.actionable">
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Actionable</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="non-constructive-column">
+                        <h3 class="text-lg font-medium mb-3 text-red-700">Non-Constructive Comments</h3>
+                        <div *ngFor="let item of getNonConstructiveCriticism()" class="criticism-item mb-2 p-3 bg-red-50 rounded">
+                          <div class="criticism-text">"{{ item.comment }}"</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.emotionalAnalysis?.constructiveCriticism?.length" class="text-center text-gray-500 py-4">
+                    No feedback analysis available
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Audience Questions Tab -->
+        <mat-tab label="Audience Questions">
+          <div class="p-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Questions List -->
+              <mat-card class="h-full" style="grid-column: span 2;">
+                <mat-card-header>
+                  <mat-card-title>Questions from Your Audience</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.questionIdentification?.questions?.length" class="questions-list">
+                    <p class="text-gray-600 mb-4">
+                      Your audience asked {{ report.reportData.questionIdentification.questions.length }} questions in the comments.
+                      Answering these questions can boost engagement and provide ideas for future content.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div *ngFor="let question of report.reportData.questionIdentification.questions" class="question-item p-3 bg-blue-50 rounded border-l-4 border-blue-500">
+                        <div class="question-text">{{ question }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.questionIdentification?.questions?.length" class="text-center text-gray-500 py-4">
+                    No questions identified in the comments
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Question Categories -->
+              <mat-card class="h-full" style="grid-column: span 2;">
+                <mat-card-header>
+                  <mat-card-title>Question Categories</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.questionIdentification?.topicCategories?.length" class="categories-list">
+                    <p-accordion [multiple]="true">
+                      <p-accordion-panel *ngFor="let category of report.reportData.questionIdentification.topicCategories">
+                        <ng-template pTemplate="header">
+                          <div class="flex align-items-center">
+                            <span class="font-medium">{{ category.topic }} ({{ category.questions.length }})</span>
+                          </div>
+                        </ng-template>
+                        <div class="category-questions">
+                          <div *ngFor="let question of category.questions" class="category-question-item p-2 mb-2 bg-gray-50 rounded">
+                            {{ question }}
+                          </div>
+                        </div>
+                      </p-accordion-panel>
+                    </p-accordion>
+                  </div>
+                  <div *ngIf="!report.reportData?.questionIdentification?.topicCategories?.length" class="text-center text-gray-500 py-4">
+                    No question categories available
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Audience Insights Tab -->
+        <mat-tab label="Audience Insights">
+          <div class="p-4">
+            <!-- Viewer Personas -->
+            <mat-card class="mb-6">
+              <mat-card-header>
+                <mat-card-title>Viewer Personas</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div *ngIf="report.reportData?.audienceInsights?.viewerPersonas?.length" class="personas-container">
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div *ngFor="let persona of report.reportData.audienceInsights.viewerPersonas" class="persona-card p-4 bg-white rounded-lg shadow-md border border-gray-200">
+                      <h3 class="text-xl font-bold text-primary-700 mb-2">{{ persona.personaName }}</h3>
+                      <p class="text-gray-700 mb-3">{{ persona.description }}</p>
+                      <div class="characteristics mb-3">
+                        <h4 class="text-sm font-medium text-gray-500 mb-1">CHARACTERISTICS:</h4>
+                        <ul class="list-disc pl-5">
+                          <li *ngFor="let trait of persona.characteristics" class="text-sm text-gray-600">{{ trait }}</li>
+                        </ul>
+                      </div>
+                      <div class="example-comments">
+                        <h4 class="text-sm font-medium text-gray-500 mb-1">EXAMPLE COMMENTS:</h4>
+                        <div *ngFor="let comment of persona.exampleComments" class="text-sm text-gray-600 italic mb-1">"{{ comment }}"</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="!report.reportData?.audienceInsights?.viewerPersonas?.length" class="text-center text-gray-500 py-4">
+                  No viewer personas available
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Community Health -->
+              <mat-card class="h-full">
+                <mat-card-header>
+                  <mat-card-title>Community Health</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.audienceInsights?.communityHealthScore" class="community-health">
+                    <div class="health-score-container text-center mb-4">
+                      <div class="health-score inline-flex items-center justify-center rounded-full w-24 h-24 text-white text-3xl font-bold"
+                           [ngStyle]="{'background-color': getCommunityHealthColor(report.reportData.audienceInsights.communityHealthScore)}">
+                        {{ report.reportData.audienceInsights.communityHealthScore }}/10
+                      </div>
+                    </div>
+                    <div class="health-analysis">
+                      <p class="text-gray-700">{{ report.reportData.audienceInsights.communityHealthAnalysis }}</p>
+                    </div>
+
+                    <div *ngIf="report.reportData?.audienceInsights?.powerCommenters?.length" class="power-commenters mt-4">
+                      <h4 class="text-lg font-medium mb-2">Power Commenters</h4>
+                      <div *ngFor="let commenter of report.reportData.audienceInsights.powerCommenters" class="power-commenter-item flex justify-between items-center p-2 mb-2 bg-gray-50 rounded">
+                        <div>
+                          <div class="commenter-name font-medium">{{ commenter.name }}</div>
+                          <div class="commenter-impact text-sm text-gray-600">{{ commenter.impact }}</div>
+                        </div>
+                        <div class="commenter-count px-2 py-1 bg-primary-100 text-primary-800 rounded-full text-sm">
+                          {{ commenter.comments }} comments
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.audienceInsights?.communityHealthScore" class="text-center text-gray-500 py-4">
+                    No community health data available
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Language & Tone Profile -->
+              <mat-card class="h-full">
+                <mat-card-header>
+                  <mat-card-title>Language & Tone Profile</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.audienceInsights?.languageToneProfile" class="language-profile">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                      <div class="tone-item p-3 bg-gray-50 rounded">
+                        <div class="tone-label text-sm text-gray-500">Formality Level</div>
+                        <div class="tone-value font-medium">{{ report.reportData.audienceInsights.languageToneProfile.formalityLevel }}</div>
+                      </div>
+                      <div class="tone-item p-3 bg-gray-50 rounded">
+                        <div class="tone-label text-sm text-gray-500">Technical Level</div>
+                        <div class="tone-value font-medium">{{ report.reportData.audienceInsights.languageToneProfile.technicalLevel }}</div>
+                      </div>
+                      <div class="tone-item p-3 bg-gray-50 rounded">
+                        <div class="tone-label text-sm text-gray-500">Emotional Tone</div>
+                        <div class="tone-value font-medium">{{ report.reportData.audienceInsights.languageToneProfile.emotionalTone }}</div>
+                      </div>
+                    </div>
+
+                    <div *ngIf="report.reportData?.audienceInsights?.languageToneProfile?.commonPhrases?.length" class="common-phrases">
+                      <h4 class="text-lg font-medium mb-2">Common Phrases</h4>
+                      <div class="phrases-cloud flex flex-wrap gap-2">
+                        <div *ngFor="let phrase of report.reportData.audienceInsights.languageToneProfile.commonPhrases"
+                             class="phrase-item px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm">
+                          {{ phrase }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.audienceInsights?.languageToneProfile" class="text-center text-gray-500 py-4">
+                    No language profile data available
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Content Context Tab -->
+        <mat-tab label="Content Context">
+          <div class="p-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Title & Thumbnail Feedback -->
+              <mat-card class="h-full">
+                <mat-card-header>
+                  <mat-card-title>Title & Thumbnail Feedback</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="feedback-sections">
+                    <div class="title-feedback mb-4">
+                      <h4 class="text-lg font-medium mb-2">Title Feedback</h4>
+                      <div *ngIf="report.reportData?.contextualAnalysis?.titleFeedback?.length" class="feedback-list">
+                        <div *ngFor="let feedback of report.reportData.contextualAnalysis.titleFeedback" class="feedback-item p-2 mb-2 bg-gray-50 rounded">
+                          {{ feedback }}
+                        </div>
+                      </div>
+                      <div *ngIf="!report.reportData?.contextualAnalysis?.titleFeedback?.length" class="text-center text-gray-500 py-2">
+                        No title feedback available
+                      </div>
+                    </div>
+
+                    <div class="thumbnail-feedback">
+                      <h4 class="text-lg font-medium mb-2">Thumbnail Feedback</h4>
+                      <div *ngIf="report.reportData?.contextualAnalysis?.thumbnailFeedback?.length" class="feedback-list">
+                        <div *ngFor="let feedback of report.reportData.contextualAnalysis.thumbnailFeedback" class="feedback-item p-2 mb-2 bg-gray-50 rounded">
+                          {{ feedback }}
+                        </div>
+                      </div>
+                      <div *ngIf="!report.reportData?.contextualAnalysis?.thumbnailFeedback?.length" class="text-center text-gray-500 py-2">
+                        No thumbnail feedback available
+                      </div>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- SEO Suggestions -->
+              <mat-card class="h-full">
+                <mat-card-header>
+                  <mat-card-title>SEO Suggestions</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.contextualAnalysis?.seoSuggestions?.length" class="seo-suggestions">
+                    <p class="text-gray-600 mb-4">
+                      These keywords and phrases appeared in comments but may be missing from your video metadata.
+                      Consider adding them to improve discoverability.
+                    </p>
+                    <div class="seo-tags flex flex-wrap gap-2">
+                      <div *ngFor="let suggestion of report.reportData.contextualAnalysis.seoSuggestions"
+                           class="seo-tag px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm">
+                        {{ suggestion }}
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.contextualAnalysis?.seoSuggestions?.length" class="text-center text-gray-500 py-4">
+                    No SEO suggestions available
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Expectation vs Reality -->
+              <mat-card class="h-full" style="grid-column: span 2;">
+                <mat-card-header>
+                  <mat-card-title>Expectation vs. Reality</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.contextualAnalysis?.expectationVsReality" class="expectation-reality">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div class="expectation-column p-4 bg-blue-50 rounded">
+                        <h4 class="text-lg font-medium mb-3 text-blue-700">What You Promised</h4>
+                        <ul class="list-disc pl-5">
+                          <li *ngFor="let item of report.reportData.contextualAnalysis.expectationVsReality.promised" class="mb-2 text-gray-700">
+                            {{ item }}
+                          </li>
+                        </ul>
+                      </div>
+                      <div class="reality-column p-4 bg-green-50 rounded">
+                        <h4 class="text-lg font-medium mb-3 text-green-700">What You Delivered</h4>
+                        <ul class="list-disc pl-5">
+                          <li *ngFor="let item of report.reportData.contextualAnalysis.expectationVsReality.delivered" class="mb-2 text-gray-700">
+                            {{ item }}
+                          </li>
+                        </ul>
+                      </div>
+                      <div class="gaps-column p-4 bg-amber-50 rounded">
+                        <h4 class="text-lg font-medium mb-3 text-amber-700">Content Gaps</h4>
+                        <ul class="list-disc pl-5">
+                          <li *ngFor="let item of report.reportData.contextualAnalysis.expectationVsReality.gaps" class="mb-2 text-gray-700">
+                            {{ item }}
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.contextualAnalysis?.expectationVsReality" class="text-center text-gray-500 py-4">
+                    No expectation vs. reality data available
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Enhanced Action Plan Tab -->
+        <mat-tab label="Enhanced Action Plan">
+          <div class="p-4">
+            <!-- Content Ideas -->
+            <mat-card class="mb-6">
+              <mat-card-header>
+                <div mat-card-avatar class="opportunity-icon content-ideas-icon bg-blue-100">
+                  <mat-icon class="text-blue-600">lightbulb</mat-icon>
+                </div>
+                <mat-card-title>Content Ideas</mat-card-title>
+                <mat-card-subtitle>Future video and content suggestions based on audience feedback</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div *ngIf="report.reportData?.enhancedActionPlan?.contentIdeas?.length" class="action-items">
+                  <div *ngFor="let idea of report.reportData.enhancedActionPlan.contentIdeas" class="action-item mb-4 p-4 rounded border-l-4"
+                       [ngClass]="getPriorityClass(idea.priority)">
+                    <div class="flex items-start">
+                      <div class="priority-badge mr-3" [ngClass]="getPriorityBadgeClass(idea.priority)">
+                        {{ idea.priority }}
+                      </div>
+                      <div class="action-content">
+                        <div class="action-suggestion font-medium mb-2">{{ idea.suggestion }}</div>
+                        <div class="supporting-evidence bg-gray-50 p-3 rounded">
+                          <div class="text-xs text-gray-500 mb-1">SUPPORTING EVIDENCE:</div>
+                          <div *ngFor="let evidence of idea.supportingEvidence" class="evidence-item text-sm text-gray-700 italic mb-1">
+                            "{{ evidence }}"
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="!report.reportData?.enhancedActionPlan?.contentIdeas?.length" class="text-center text-gray-500 py-4">
+                  No content ideas available
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Community Engagement Tactics -->
+            <mat-card class="mb-6">
+              <mat-card-header>
+                <div mat-card-avatar class="opportunity-icon engagement-icon bg-purple-100">
+                  <mat-icon class="text-purple-600">people</mat-icon>
+                </div>
+                <mat-card-title>Community Engagement Tactics</mat-card-title>
+                <mat-card-subtitle>Ways to better connect with your audience</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div *ngIf="report.reportData?.enhancedActionPlan?.communityEngagementTactics?.length" class="action-items">
+                  <div *ngFor="let tactic of report.reportData.enhancedActionPlan.communityEngagementTactics" class="action-item mb-4 p-4 rounded border-l-4"
+                       [ngClass]="getPriorityClass(tactic.priority)">
+                    <div class="flex items-start">
+                      <div class="priority-badge mr-3" [ngClass]="getPriorityBadgeClass(tactic.priority)">
+                        {{ tactic.priority }}
+                      </div>
+                      <div class="action-content">
+                        <div class="action-suggestion font-medium mb-2">{{ tactic.suggestion }}</div>
+                        <div class="supporting-evidence bg-gray-50 p-3 rounded">
+                          <div class="text-xs text-gray-500 mb-1">SUPPORTING EVIDENCE:</div>
+                          <div *ngFor="let evidence of tactic.supportingEvidence" class="evidence-item text-sm text-gray-700 italic mb-1">
+                            "{{ evidence }}"
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="!report.reportData?.enhancedActionPlan?.communityEngagementTactics?.length" class="text-center text-gray-500 py-4">
+                  No community engagement tactics available
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Video Optimization Tips -->
+            <mat-card>
+              <mat-card-header>
+                <div mat-card-avatar class="opportunity-icon optimization-icon bg-green-100">
+                  <mat-icon class="text-green-600">tune</mat-icon>
+                </div>
+                <mat-card-title>Video Optimization Tips</mat-card-title>
+                <mat-card-subtitle>Suggestions to improve your video performance</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div *ngIf="report.reportData?.enhancedActionPlan?.videoOptimizationTips?.length" class="action-items">
+                  <div *ngFor="let tip of report.reportData.enhancedActionPlan.videoOptimizationTips" class="action-item mb-4 p-4 rounded border-l-4"
+                       [ngClass]="getPriorityClass(tip.priority)">
+                    <div class="flex items-start">
+                      <div class="priority-badge mr-3" [ngClass]="getPriorityBadgeClass(tip.priority)">
+                        {{ tip.priority }}
+                      </div>
+                      <div class="action-content">
+                        <div class="action-suggestion font-medium mb-2">{{ tip.suggestion }}</div>
+                        <div class="supporting-evidence bg-gray-50 p-3 rounded">
+                          <div class="text-xs text-gray-500 mb-1">SUPPORTING EVIDENCE:</div>
+                          <div *ngFor="let evidence of tip.supportingEvidence" class="evidence-item text-sm text-gray-700 italic mb-1">
+                            "{{ evidence }}"
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="!report.reportData?.enhancedActionPlan?.videoOptimizationTips?.length" class="text-center text-gray-500 py-4">
+                  No video optimization tips available
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Original Opportunities Tab -->
+        <mat-tab label="Actionable Opportunities">
+          <div class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Content Requests -->
+              <mat-card>
+                <mat-card-header>
+                  <div mat-card-avatar class="opportunity-icon content-requests-icon">
+                    <mat-icon>star</mat-icon>
+                  </div>
+                  <mat-card-title>Top Content Requests</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.actionableOpportunities?.contentRequests?.length" class="opportunity-list">
+                    <div *ngFor="let request of report.reportData.actionableOpportunities.contentRequests" class="opportunity-item">
+                      <div class="opportunity-text">{{ request }}</div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.actionableOpportunities?.contentRequests?.length" class="no-data">
+                    No specific content requests identified.
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Merchandise Ideas -->
+              <mat-card>
+                <mat-card-header>
+                  <div mat-card-avatar class="opportunity-icon merchandise-icon">
+                    <mat-icon>shopping_bag</mat-icon>
+                  </div>
+                  <mat-card-title>Merchandise Ideas</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.actionableOpportunities?.merchandiseIdeas?.length" class="opportunity-list">
+                    <div *ngFor="let idea of report.reportData.actionableOpportunities.merchandiseIdeas" class="opportunity-item">
+                      <div class="opportunity-text">{{ idea }}</div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.actionableOpportunities?.merchandiseIdeas?.length" class="no-data">
+                    No merchandise ideas identified.
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Engagement Opportunities -->
+              <mat-card>
+                <mat-card-header>
+                  <div mat-card-avatar class="opportunity-icon engagement-icon">
+                    <mat-icon>forum</mat-icon>
+                  </div>
+                  <mat-card-title>Engagement Opportunities</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.actionableOpportunities?.engagementOpportunities?.length" class="opportunity-list">
+                    <div *ngFor="let opportunity of report.reportData.actionableOpportunities.engagementOpportunities" class="opportunity-item">
+                      <div class="opportunity-text">{{ opportunity }}</div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.actionableOpportunities?.engagementOpportunities?.length" class="no-data">
+                    No specific engagement opportunities identified.
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Brand Identity -->
+              <mat-card>
+                <mat-card-header>
+                  <div mat-card-avatar class="opportunity-icon brand-icon">
+                    <mat-icon>verified</mat-icon>
+                  </div>
+                  <mat-card-title>Brand Identity to Reinforce</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="report.reportData?.actionableOpportunities?.brandIdentity?.length" class="opportunity-list">
+                    <div *ngFor="let identity of report.reportData.actionableOpportunities.brandIdentity" class="opportunity-item">
+                      <div class="opportunity-text">{{ identity }}</div>
+                    </div>
+                  </div>
+                  <div *ngIf="!report.reportData?.actionableOpportunities?.brandIdentity?.length" class="no-data">
+                    No specific brand identity elements identified.
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+
+      <!-- Exit Button -->
+      <div class="flex justify-center mt-8 mb-4">
+        <button mat-raised-button color="primary" class="py-3 px-6 text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg shadow-md hover:shadow-lg transition-all duration-300" (click)="navigateToDashboard()">
+          <mat-icon class="mr-2">exit_to_app</mat-icon>
+          <span class="text-lg font-medium">Return to Dashboard</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast for notifications -->
+<p-toast position="bottom-right"></p-toast>

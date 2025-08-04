@@ -1,0 +1,221 @@
+/* Custom styles for the signup component */
+
+/* Override Material card styles for better aesthetics */
+mat-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #8076a3; /* Solid border color */
+  background-color: #8076a3 !important; /* Solid Purple Mountains Majesty as per requirements */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+  color: white !important; /* White text for better contrast on purple background */
+}
+
+mat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid #8076a3; /* Solid border color */
+}
+
+/* Signup page background animation */
+::ng-deep .min-h-screen {
+  position: relative;
+  overflow: hidden;
+}
+
+::ng-deep .min-h-screen::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(249, 197, 189, 0.2) 0%, transparent 50%); /* Misty Mountain Pink (pink-300) */
+  animation: rotateBackground 30s linear infinite;
+  z-index: -1;
+}
+
+@keyframes rotateBackground {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Custom form field styles */
+::ng-deep .mat-mdc-form-field-flex {
+  background-color: white !important; /* White background as per requirements */
+  border-radius: 8px !important;
+  /* Removed the border to fix the double border issue */
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  background-color: white !important; /* Ensure white background */
+}
+
+::ng-deep .mat-mdc-form-field-outline {
+  color: black !important; /* Black outline as per requirements */
+}
+
+::ng-deep .mat-mdc-form-field-outline-thick {
+  color: black !important; /* Black outline as per requirements */
+}
+
+::ng-deep .mat-mdc-form-field:hover .mat-mdc-form-field-outline {
+  color: black !important; /* Black outline on hover */
+}
+
+::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-form-field-outline-thick {
+  color: black !important; /* Black outline when focused */
+}
+
+::ng-deep .mat-mdc-form-field-infix {
+  padding: 0.75em 0 !important;
+}
+
+/* Input text color */
+::ng-deep .mat-mdc-input-element {
+  color: black !important; /* Black text as per requirements */
+}
+
+/* Fix for vertical border line in input fields */
+::ng-deep .mdc-notched-outline__leading {
+  border-right: none !important;
+}
+
+::ng-deep .mdc-notched-outline__notch {
+  border-left: none !important;
+  border-right: none !important;
+}
+
+::ng-deep .mat-mdc-form-field-label-wrapper {
+  top: -0.75em;
+}
+
+/* Label color */
+::ng-deep .mat-mdc-form-field-label {
+  color: black !important; /* Black label as per requirements */
+}
+
+/* Custom stepper styles */
+::ng-deep .mat-horizontal-stepper-header-container {
+  margin-bottom: 20px;
+}
+
+::ng-deep .mat-step-header .mat-step-icon-selected {
+  background: linear-gradient(45deg, #9bc400, #c9e166); /* Grassy Green (accent-500 to accent-300) */
+  box-shadow: 0 0 15px rgba(155, 196, 0, 0.5); /* Grassy Green (accent-500) */
+}
+
+::ng-deep .mat-step-header .mat-step-icon {
+  background-color: rgba(74, 62, 80, 0.7); /* Factory Stone Purple (primary-800) */
+  border: 1px solid rgba(128, 118, 163, 0.3); /* Purple Mountains Majesty (secondary-600) */
+}
+
+::ng-deep .mat-step-header .mat-step-label.mat-step-label-active {
+  color: #9bc400; /* Grassy Green (accent-500) */
+  text-shadow: 0 0 5px rgba(155, 196, 0, 0.3); /* Grassy Green (accent-500) */
+}
+
+::ng-deep .mat-step-header .mat-step-label {
+  color: #f9c5bd; /* Misty Mountain Pink (pink-300) */
+}
+
+::ng-deep .mat-stepper-horizontal {
+  background-color: transparent;
+}
+
+::ng-deep .mat-stepper-horizontal-line {
+  border-top-color: rgba(128, 118, 163, 0.4); /* Purple Mountains Majesty (secondary-600) */
+}
+
+/* Custom error and success styles */
+.error-snackbar {
+  background-color: rgba(239, 68, 68, 0.9);
+  color: white;
+  backdrop-filter: blur(10px);
+  border-left: 4px solid #ef4444;
+  box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+}
+
+.success-snackbar {
+  background-color: rgba(16, 185, 129, 0.9);
+  color: white;
+  backdrop-filter: blur(10px);
+  border-left: 4px solid #10b981;
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+}
+
+/* Custom button styles */
+button[mat-raised-button] {
+  height: 52px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  background: linear-gradient(45deg, #9bc400, #c9e166) !important; /* Grassy Green (accent-500 to accent-300) */
+  box-shadow: 0 4px 15px rgba(155, 196, 0, 0.4) !important; /* Grassy Green (accent-500) */
+  position: relative;
+  overflow: hidden;
+}
+
+button[mat-raised-button]::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  transform: rotate(45deg);
+  animation: rotateGradient 3s linear infinite;
+}
+
+button[mat-raised-button]:hover:not([disabled]) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(155, 196, 0, 0.5) !important; /* Grassy Green (accent-500) */
+}
+
+@keyframes rotateGradient {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Animation for the spinner */
+mat-spinner {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Icon styles */
+.inline-block.p-4.rounded-full.bg-primary-100 mat-icon {
+  color: #4a3e50 !important; /* primary-800 - darker purple for better contrast */
+}
+
+button.text-primary-500 mat-icon {
+  color: #4a3e50 !important; /* primary-800 - darker purple for better contrast */
+}
+
+button.text-primary-600 mat-icon {
+  color: #4a3e50 !important; /* primary-800 - darker purple for better contrast */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .max-w-2xl {
+    max-width: 95%;
+  }
+
+  mat-card {
+    padding: 1.5rem !important;
+  }
+
+  h1 {
+    font-size: 1.75rem !important;
+  }
+
+  ::ng-deep .mat-horizontal-stepper-header-container {
+    flex-direction: column;
+  }
+
+  ::ng-deep .mat-horizontal-content-container {
+    padding: 0;
+  }
+}

@@ -1,0 +1,105 @@
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-200 p-4">
+  <div class="w-full max-w-2xl">
+    <div class="text-center mb-8 slide-up">
+      <h1 class="text-4xl font-heading font-bold text-primary-700 mb-2">YouTube Video Analyzer</h1>
+      <p class="text-secondary-700 text-lg">Create your account</p>
+    </div>
+
+    <mat-card class="p-8 shadow-2xl rounded-xl bg-white/95 backdrop-blur-sm border border-primary-100 slide-up" style="animation-delay: 100ms;">
+      <div class="text-center mb-6">
+        <div class="inline-block p-4 rounded-full bg-primary-100 mb-2">
+          <mat-icon class="text-primary-600" style="font-size: 32px; width: 32px; height: 32px;">how_to_reg</mat-icon>
+        </div>
+        <h2 class="text-2xl font-heading font-bold text-gray-800">Join Us Today</h2>
+      </div>
+
+      <mat-card-content>
+        <mat-stepper linear #stepper class="bg-transparent">
+          <!-- Account Information Step -->
+          <mat-step [stepControl]="accountForm" label="Account Information">
+            <form [formGroup]="accountForm" class="space-y-5 py-4">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="email" placeholder="your-email@example.com" autocomplete="email" class="py-1">
+                <mat-error *ngIf="accountForm.get('email')?.hasError('required')">Email is required</mat-error>
+                <mat-error *ngIf="accountForm.get('email')?.hasError('email')">Please enter a valid email</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Password</mat-label>
+                <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" autocomplete="new-password" class="py-1">
+                <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" class="text-primary-500">
+                  <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </button>
+                <mat-error *ngIf="accountForm.get('password')?.hasError('required')">Password is required</mat-error>
+                <mat-error *ngIf="accountForm.get('password')?.hasError('minlength')">Password must be at least 6 characters</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Confirm Password</mat-label>
+                <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="confirmPassword" autocomplete="new-password" class="py-1">
+                <mat-error *ngIf="accountForm.get('confirmPassword')?.hasError('required')">Please confirm your password</mat-error>
+                <mat-error *ngIf="accountForm.get('confirmPassword')?.hasError('passwordMismatch')">Passwords do not match</mat-error>
+              </mat-form-field>
+
+              <div class="pt-4 flex justify-end">
+                <button mat-raised-button color="primary" matStepperNext [disabled]="accountForm.invalid"
+                  class="py-3 px-6 text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
+                  <span class="text-base font-medium">Next</span>
+                  <mat-icon class="ml-2">arrow_forward</mat-icon>
+                </button>
+              </div>
+            </form>
+          </mat-step>
+
+          <!-- Profile Information Step -->
+          <mat-step [stepControl]="profileForm" label="Profile Information">
+            <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="space-y-5 py-4">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Full Name</mat-label>
+                <input matInput formControlName="fullName" placeholder="John Doe" class="py-1">
+                <mat-error *ngIf="profileForm.get('fullName')?.hasError('required')">Full name is required</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>YouTube Channel Name</mat-label>
+                <input matInput formControlName="youtubeChannelName" placeholder="My Awesome Channel" class="py-1">
+                <mat-error *ngIf="profileForm.get('youtubeChannelName')?.hasError('required')">YouTube channel name is required</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Address (Optional)</mat-label>
+                <input matInput formControlName="address" placeholder="123 Main St, City, Country" class="py-1">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Phone Number (Optional)</mat-label>
+                <input matInput formControlName="phoneNumber" placeholder="+1 234 567 8900" class="py-1">
+              </mat-form-field>
+
+              <div class="pt-4 flex justify-between">
+                <button mat-button matStepperPrevious class="text-primary-600 hover:text-primary-800">
+                  <mat-icon class="mr-2">arrow_back</mat-icon>
+                  <span>Back</span>
+                </button>
+                <button mat-raised-button color="primary" type="submit"
+                  class="py-3 px-6 text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                  [disabled]="accountForm.invalid || profileForm.invalid || isLoading">
+                  <mat-spinner *ngIf="isLoading" [diameter]="24" class="inline-block mr-2"></mat-spinner>
+                  <span class="text-base font-medium">Create Account</span>
+                </button>
+              </div>
+            </form>
+          </mat-step>
+        </mat-stepper>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="mt-8 text-center slide-up" style="animation-delay: 200ms;">
+      <p class="text-gray-700">
+        Already have an account?
+        <button mat-button color="accent" (click)="navigateToLogin()" class="font-medium text-accent-600 hover:text-accent-700 ml-1">Sign In</button>
+      </p>
+    </div>
+  </div>
+</div>

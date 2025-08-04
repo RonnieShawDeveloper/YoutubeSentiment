@@ -1,0 +1,114 @@
+<div class="min-h-screen bg-gray-50 flex flex-col">
+  <!-- Header -->
+  <div class="bg-primary-600 text-white py-4">
+    <div class="container mx-auto px-4">
+      <div class="flex items-center">
+        <button mat-icon-button (click)="cancelAnalysis()" [disabled]="!isLoading && reportId">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1 class="text-xl font-heading font-bold ml-2">Analyzing YouTube Video</h1>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 py-8 flex-grow flex flex-col items-center justify-center">
+    <!-- Error State -->
+    <div *ngIf="error" class="w-full max-w-2xl">
+      <mat-card class="error-card p-6 animate-fade-in">
+        <mat-card-content>
+          <div class="flex flex-col items-center text-center">
+            <mat-icon class="text-red-500 text-6xl mb-4">error_outline</mat-icon>
+            <h2 class="text-xl font-heading font-semibold text-gray-800 mb-2">Analysis Failed</h2>
+            <p class="text-gray-600 mb-6">{{ error }}</p>
+            <button mat-raised-button color="primary" (click)="cancelAnalysis()">
+              Return to Dashboard
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading && !error" class="w-full max-w-2xl">
+      <mat-card class="loading-card p-6 animate-fade-in">
+        <mat-card-content>
+          <div class="flex flex-col items-center">
+            <!-- Video Info (if available) -->
+            <div *ngIf="videoDetails" class="w-full mb-6 flex items-center">
+              <div class="video-thumbnail mr-4">
+                <img [src]="'https://img.youtube.com/vi/' + videoId + '/mqdefault.jpg'" alt="Video Thumbnail">
+              </div>
+              <div>
+                <h3 class="text-lg font-medium text-gray-800 line-clamp-2">{{ videoDetails.title }}</h3>
+                <p class="text-gray-500 text-sm">{{ videoDetails.channelTitle }}</p>
+              </div>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="w-full mb-6">
+              <p-progressBar [value]="getProgressPercentage()" [showValue]="false" styleClass="mb-2"></p-progressBar>
+              <div class="flex justify-between text-sm text-gray-500">
+                <span>Starting</span>
+                <span>Processing</span>
+                <span>Completed</span>
+              </div>
+            </div>
+
+            <!-- Current Step -->
+            <div class="text-center mb-8">
+              <h3 class="text-xl font-heading font-semibold text-primary-700 mb-2">{{ steps[currentStep] }}</h3>
+              <p class="text-gray-600">Step {{ currentStep + 1 }} of {{ steps.length }}</p>
+            </div>
+
+            <!-- Loading Animation -->
+            <div class="loading-animation mb-8">
+              <mat-spinner [diameter]="60" color="accent"></mat-spinner>
+            </div>
+
+            <!-- Stats (if available) -->
+            <div *ngIf="comments.length > 0" class="stats-container w-full">
+              <mat-divider class="mb-4"></mat-divider>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="stat-item text-center">
+                  <p class="text-gray-500 text-sm">Comments Analyzed</p>
+                  <p class="text-2xl font-bold text-primary-600">{{ comments.length }}</p>
+                </div>
+                <div class="stat-item text-center">
+                  <p class="text-gray-500 text-sm">Video Views</p>
+                  <p class="text-2xl font-bold text-primary-600">{{ videoDetails?.viewCount | number }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cancel Button -->
+            <button mat-button color="warn" class="mt-6" (click)="cancelAnalysis()">
+              Cancel Analysis
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Success State (briefly shown before redirect) -->
+    <div *ngIf="!isLoading && reportId && !error" class="w-full max-w-2xl">
+      <mat-card class="success-card p-6 animate-fade-in">
+        <mat-card-content>
+          <div class="flex flex-col items-center text-center">
+            <mat-icon class="text-green-500 text-6xl mb-4">check_circle</mat-icon>
+            <h2 class="text-xl font-heading font-semibold text-gray-800 mb-2">Analysis Complete!</h2>
+            <p class="text-gray-600 mb-6">Your report has been generated successfully. Redirecting to results...</p>
+            <div class="loading-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
+
+<!-- Toast for notifications -->
+<p-toast position="bottom-right"></p-toast>
